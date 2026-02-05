@@ -17,3 +17,4 @@ pandas
 streamlit
 plotly
 openpyxl 
+altair<5
