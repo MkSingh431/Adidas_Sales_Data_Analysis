@@ -63,9 +63,8 @@ with view2:
     expander.write(data)
 with dwn2:
     st.download_button("Get Data", data = result.to_csv().encode("utf-8"),
-                       file_name="Monthly Sales.csv", mime="text/csv")
-    
-st.divider()
+                       file_name="Monthly Sales.csv", mime="text/csv")    
+st.markdown("---")
 
 result1 = df.groupby(by="State")[["TotalSales","UnitsSold"]].sum().reset_index()
 
