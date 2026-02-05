@@ -92,7 +92,7 @@ with view3:
 with dwn3:
     st.download_button("Get Data", data = result1.to_csv().encode("utf-8"), 
                        file_name = "Sales_by_UnitsSold.csv", mime="text/csv")
-st.divider()
+st.markdown("---")
 
 _, col7 = st.columns([0.1,1])
 treemap = df[["Region","City","TotalSales"]].groupby(by = ["Region","City"])["TotalSales"].sum().reset_index()
