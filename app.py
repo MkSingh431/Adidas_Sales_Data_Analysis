@@ -49,7 +49,9 @@ with dwn1:
                        file_name="RetailerSales.csv", mime="text/csv")
 
 df["Month_Year"] = df["InvoiceDate"].dt.strftime("%b'%y")
-result = df.groupby(by = df["Month_Year"])["TotalSales"].sum().reset_index()
+result = df.groupby(df["InvoiceDate"].dt.to_period("M"))["TotalSales"].sum().reset_index()
+result = result.rename(columns={"InvoiceDate": "Period"})
+result["Month_Year"] = result["Period"].dt.strftime("%b'%y")
 
 with col5:
     fig1 = px.line(result, x = "Month_Year", y = "TotalSales", title="Total Sales Over Time",
