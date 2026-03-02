@@ -31,6 +31,10 @@ with st.sidebar:
     st.subheader("Select year")
     years=sorted(data['Year'].dropna().astype(int).unique().tolist())
     selected_years=st.multiselect("Pick your Year(s)",years)
+    
+    st.subheader("Follow Mk Singh")
+    st.markdown("[LinkedIn](http://www.linkedin.com/in/motilal-das-42b4a9254)")
+    st.markdown("[GitHub](https://github.com/MkSingh431)")
 
 filtered_data=data.copy()
 if selected_retailers:
