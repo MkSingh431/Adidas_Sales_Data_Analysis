@@ -1,10 +1,10 @@
-import pandas as pd
+import os
+
 import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.express as px
 import seaborn as sns
 import streamlit as st
-import base64
-import os
-import plotly.express as px
 
 
 
@@ -12,14 +12,66 @@ st.set_page_config(page_title='Adidas Sales!!!',page_icon=':bar_chart',layout='w
 st.title('Adidas Analysis Dashboard')
 st.markdown('<style>div.block-container{padding-top:2rem;}</style>',unsafe_allow_html=True)
 
-data=pd.read_excel("Adidas.xlsx")
+DATA_FILE = "Adidas.xlsx"
+LOGO_FILE = "logo.png"
+REQUIRED_COLUMNS = {
+    "InvoiceDate",
+    "Retailer",
+    "RetailerID",
+    "TotalSales",
+    "OperatingProfit",
+    "UnitsSold",
+    "Region",
+    "SalesMethod",
+    "State",
+}
+
+
+def show_dataframe(df_or_style, **kwargs):
+    try:
+        st.dataframe(df_or_style, width='stretch', **kwargs)
+    except TypeError:
+        # Backward compatibility for older Streamlit versions.
+        st.dataframe(df_or_style, use_container_width=True, **kwargs)
+
+
+def show_plotly(fig, **kwargs):
+    try:
+        st.plotly_chart(fig, width='stretch', **kwargs)
+    except TypeError:
+        # Backward compatibility for older Streamlit versions.
+        st.plotly_chart(fig, use_container_width=True, **kwargs)
+
+
+@st.cache_data(show_spinner=False)
+def load_data(path: str) -> pd.DataFrame:
+    return pd.read_excel(path, engine="openpyxl")
+
+
+if not os.path.exists(DATA_FILE):
+    st.error(f"Data file not found: `{DATA_FILE}`. Add it to the app root and redeploy.")
+    st.stop()
+
+try:
+    data = load_data(DATA_FILE)
+except Exception as exc:
+    st.error(
+        f"Failed to load `{DATA_FILE}`. Ensure it is a valid Excel file and `openpyxl` is installed.\n\n"
+        f"Error: {exc}"
+    )
+    st.stop()
+
+missing_columns = sorted(REQUIRED_COLUMNS - set(data.columns))
+if missing_columns:
+    st.error(f"Missing required columns in `{DATA_FILE}`: {', '.join(missing_columns)}")
+    st.stop()
 
 data['InvoiceDate']=pd.to_datetime(data['InvoiceDate'],errors='coerce')
 data=data.dropna(subset=['InvoiceDate']).copy()
 data['Year']=data['InvoiceDate'].dt.year
 
 with st.sidebar:
-    logo_path ="logo.png"
+    logo_path = LOGO_FILE
     if os.path.exists(logo_path):
         st.image(logo_path,width=150)
     st.title('Choose your Filters')
@@ -185,7 +237,7 @@ with view1:
         
         style_df=sales_by_retailer.style.background_gradient(cmap='Greens',subset=['TotalSales']).format({'TotalSales':'${:,.2f}'})
         
-        st.dataframe(style_df, width='stretch')
+        show_dataframe(style_df)
         
 with view2:
     with st.expander("Profit by Retailer"):
@@ -193,7 +245,7 @@ with view2:
         
         style_df=profit_by_retailer.style.background_gradient(cmap='Greens',subset=['OperatingProfit']).format({'OperatingProfit':'${:,.2f}'})
         
-        st.dataframe(style_df, width='stretch')
+        show_dataframe(style_df)
         
 st.divider()
 
@@ -283,7 +335,7 @@ with view3:
         )
 
         # 4. Interactive Dataframe with Column Styling
-        st.dataframe(
+        show_dataframe(
             regional_table,
             column_config={
                 "Region": "Sales Region",
@@ -303,7 +355,6 @@ with view3:
                 )
             },
             hide_index=True,
-            width='stretch'
         )
         
         
@@ -313,7 +364,7 @@ with view4:
         
         style_df=salesmethod.style.background_gradient(cmap="BuGn_r", subset=['TotalSales']).format({'TotalSales':'${:,.2f}'})
         
-        st.dataframe(style_df, width='stretch')
+        show_dataframe(style_df)
   
 st.divider()
 chart5=st.columns(1)[0]
@@ -356,7 +407,7 @@ with chart5:
         margin=dict(l=20, r=20, t=50, b=50)
     )
     
-    st.plotly_chart(fig, width='stretch')
+    show_plotly(fig)
     
 view5=st.columns(1)[0]
 with view5:
@@ -366,7 +417,7 @@ with view5:
     
         style_df=state_sales.style.background_gradient(cmap='BuGn_r', subset=['TotalSales']).format({'TotalSales':'${:,.2f}'})
     
-        st.dataframe(style_df, width='stretch')       
+        show_dataframe(style_df)
 
              
     
